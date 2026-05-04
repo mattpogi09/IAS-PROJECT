@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     git curl zip unzip libpng-dev libonig-dev libxml2-dev libpq-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# PHP extensions (pdo_pgsql for Render PostgreSQL, gd/mbstring for Laravel)
+# PHP extensions (pdo_pgsql for Render PostgreSQL)
 RUN docker-php-ext-install pdo pdo_pgsql pdo_mysql mbstring exif pcntl bcmath gd
 
 # Node.js 20 (for building Vite assets)
@@ -31,13 +31,20 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction \
     && npm run build \
     && rm -rf node_modules
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html \
+# Ensure storage directories exist (view:cache needs storage/framework/views)
+RUN mkdir -p storage/framework/views \
+             storage/framework/cache \
+             storage/framework/sessions \
+             storage/logs \
+             bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Startup script (migrate + start Apache)
+# Startup script
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
-EXPOSE 80
+# Expose Render's default port (start.sh also patches Apache to use $PORT)
+EXPOSE 10000
+
 CMD ["/start.sh"]

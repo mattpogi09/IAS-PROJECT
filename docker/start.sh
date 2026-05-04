@@ -1,6 +1,23 @@
 #!/bin/bash
 set -e
 
+# ── 1. Ensure required storage directories exist ──────────────────────────────
+echo "=== Creating storage directories ==="
+mkdir -p /var/www/html/storage/framework/views \
+         /var/www/html/storage/framework/cache \
+         /var/www/html/storage/framework/sessions \
+         /var/www/html/storage/logs \
+         /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# ── 2. Configure Apache to listen on $PORT (Render sets this) ─────────────────
+PORT="${PORT:-10000}"
+echo "=== Configuring Apache to listen on port $PORT ==="
+sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf
+sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
+
+# ── 3. Write production .env ──────────────────────────────────────────────────
 echo "=== Writing .env ==="
 cat > /var/www/html/.env <<EOF
 APP_NAME="Secure Login App"
@@ -42,16 +59,20 @@ MAIL_FROM_NAME="Secure Login App"
 VITE_APP_NAME="Secure Login App"
 EOF
 
+# ── 4. Generate APP_KEY & run migrations ──────────────────────────────────────
 echo "=== Generating APP_KEY (if not set) ==="
+cd /var/www/html
 php artisan key:generate --force
 
 echo "=== Running migrations ==="
 php artisan migrate --force
 
+# ── 5. Cache config / routes / views ─────────────────────────────────────────
 echo "=== Caching config / routes / views ==="
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "=== Starting Apache ==="
+# ── 6. Start Apache ───────────────────────────────────────────────────────────
+echo "=== Starting Apache on port $PORT ==="
 exec apache2-foreground
