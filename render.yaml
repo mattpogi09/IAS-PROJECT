@@ -1,10 +1,14 @@
+databases:
+  - name: secure-login-db
+    plan: free
+    databaseName: laravel
+    user: laravel
+
 services:
   - type: web
     name: secure-login-app
-    runtime: php
+    runtime: docker
     plan: free
-    buildCommand: ./render-build.sh
-    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_NAME
         value: "Secure Login App"
@@ -20,9 +24,27 @@ services:
           name: secure-login-app
           property: host
       - key: DB_CONNECTION
-        value: sqlite
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: secure-login-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: secure-login-db
+          property: port
       - key: DB_DATABASE
-        value: /var/data/database.sqlite
+        fromDatabase:
+          name: secure-login-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: secure-login-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: secure-login-db
+          property: password
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_STORE
@@ -33,7 +55,3 @@ services:
         value: stderr
       - key: LOG_LEVEL
         value: error
-    disk:
-      name: sqlite-data
-      mountPath: /var/data
-      sizeGB: 1
