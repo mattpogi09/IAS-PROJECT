@@ -65,11 +65,14 @@ EOF
 # ── 4. Generate key, migrate, cache ───────────────────────────────────────────
 cd /var/www/html
 
-echo "=== Generating APP_KEY (only if not already set) ==="
-if [ -z "$APP_KEY" ]; then
+echo "=== Validating APP_KEY ==="
+# Render's generateValue produces a plain random string, NOT the base64:XXX
+# format Laravel requires. Regenerate if missing the prefix.
+if [[ "$APP_KEY" != base64:* ]]; then
+    echo "APP_KEY missing 'base64:' prefix (Render generateValue issue) — generating proper key..."
     php artisan key:generate --force
 else
-    echo "APP_KEY already set — skipping generation"
+    echo "APP_KEY is correctly formatted — skipping generation"
 fi
 
 echo "=== Running migrations ==="
