@@ -65,8 +65,12 @@ EOF
 # ── 4. Generate key, migrate, cache ───────────────────────────────────────────
 cd /var/www/html
 
-echo "=== Generating APP_KEY (if not set) ==="
-php artisan key:generate --force
+echo "=== Generating APP_KEY (only if not already set) ==="
+if [ -z "$APP_KEY" ]; then
+    php artisan key:generate --force
+else
+    echo "APP_KEY already set — skipping generation"
+fi
 
 echo "=== Running migrations ==="
 php artisan migrate --force
