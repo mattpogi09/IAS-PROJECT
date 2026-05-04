@@ -65,8 +65,13 @@ EOF
 # ── 4. Generate key, migrate, cache ───────────────────────────────────────────
 cd /var/www/html
 
-echo "=== Generating APP_KEY with artisan (ensures correct base64: format) ==="
-php artisan key:generate --force
+echo "=== Checking APP_KEY ==="
+if [[ "${APP_KEY}" == base64:* ]]; then
+    echo "APP_KEY is valid (base64: prefix found) — skipping generation"
+else
+    echo "APP_KEY is missing or invalid — generating with artisan..."
+    php artisan key:generate --force
+fi
 
 echo "=== Running migrations ==="
 php artisan migrate --force
