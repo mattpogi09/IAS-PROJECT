@@ -38,6 +38,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/blog/sql-intro', function () {
+        return Inertia::render('Blog/SqlIntroPage');
+    })->name('blog.sql-intro');
+
+    Route::get('/blog/sql-advanced', function () {
+        return Inertia::render('Blog/SqlAdvancedPage');
+    })->name('blog.sql-advanced');
 });
 
 require __DIR__.'/auth.php';

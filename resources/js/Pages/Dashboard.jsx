@@ -1,100 +1,59 @@
 import Modal from '@/Components/Modal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
 /* ─── WebGoat lesson posts ────────────────────────────────────────── */
+/*
+ * Cards marked clickable: true → link to a full blog page.
+ * Cards with clickable: false → static display, no interaction.
+ *
+ * Intro cards: numbered 1, 2, 3…  with no "lessons" prefix = lesson steps
+ * Cards with just a plain number (e.g. "1")  = activity answers we completed
+ * Advanced cards: "2 advanced" / "2.2 advanced" = activity answers
+ */
 const lessonPosts = [
     {
         num: '01',
-        title: 'SQL Injection Summary',
+        title: 'SQL Injection (Intro)',
         date: 'May 2026',
         file: '12.JPG',
         description:
-            'Quick reference screenshot summarizing key SQL injection points. Covers the structure of injectable queries and typical attack vectors.',
+            'A full walkthrough of all 13 steps in the WebGoat SQL Injection Intro lesson — from basic SQL concepts through query chaining and dropping tables.',
         tag: 'Intro',
+        clickable: true,
+        href: 'blog.sql-intro',
     },
     {
         num: '02',
-        title: 'Goals and Concepts',
+        title: 'SQL Injection (Advanced)',
         date: 'May 2026',
         file: 'goals and concept.JPG',
         description:
-            'Outline of the SQL injection lesson goals and the concepts students are expected to master before moving on to advanced exercises.',
-        tag: 'Lesson Goals',
-    },
-    {
-        num: '03',
-        title: 'What Is SQL Injection',
-        date: 'May 2026',
-        file: 'what is sql injection and example of injection.JPG',
-        description:
-            'Definition, entry points, and the basic mechanics behind SQL injection attacks, including real example payloads.',
-        tag: 'Fundamentals',
-    },
-    {
-        num: '04',
-        title: 'Consequences of SQL Injection',
-        date: 'May 2026',
-        file: 'consequences of sql injection.JPG',
-        description:
-            'Examples of data leaks, account compromise, and system impact caused by unmitigated SQL injection vulnerabilities.',
-        tag: 'Impact',
-    },
-    {
-        num: '05',
-        title: 'Severity of SQL Injection',
-        date: 'May 2026',
-        file: 'severity of sql injection.JPG',
-        description:
-            'Severity ranking and why SQL injection is considered a critical OWASP Top-10 vulnerability across every web technology stack.',
-        tag: 'Risk',
-    },
-    {
-        num: '06',
-        title: 'SQL Injection Advanced Concepts',
-        date: 'May 2026',
-        file: 'sql injection advanced concepts.JPG',
-        description:
-            'Advanced techniques including UNION-based extraction, stacked queries, and stronger defensive strategies.',
+            'Combining SQL injection techniques, blind SQLi, UNION-based data extraction, automated password cracking, and how prepared statements prevent it all.',
         tag: 'Advanced',
-    },
-    {
-        num: '07',
-        title: 'Blind SQL Injection',
-        date: 'May 2026',
-        file: 'blind sql injection (advanced).JPG',
-        description:
-            'Inference-based attacks that extract data without visible query output. Covers boolean-based and time-based blind injection.',
-        tag: 'Advanced',
-    },
-    {
-        num: '08',
-        title: 'Special Characters in SQL',
-        date: 'May 2026',
-        file: 'special characters (advanced).JPG',
-        description:
-            'Characters that alter query logic and how proper input handling and parameterized queries prevent their abuse.',
-        tag: 'Advanced',
+        clickable: true,
+        href: 'blog.sql-advanced',
     },
 ];
 
+
 /* ─── Tag colour map ─────────────────────────────────────────────── */
 const tagColor = {
-    'Intro':       'rgba(79,140,255,0.15)',
-    'Lesson Goals':'rgba(167,139,250,0.15)',
-    'Fundamentals':'rgba(52,211,153,0.12)',
-    'Impact':      'rgba(248,113,113,0.12)',
-    'Risk':        'rgba(251,146,60,0.12)',
-    'Advanced':    'rgba(167,139,250,0.15)',
+    'Intro':        'rgba(79,140,255,0.15)',
+    'Lesson Goals': 'rgba(167,139,250,0.15)',
+    'Fundamentals': 'rgba(52,211,153,0.12)',
+    'Impact':       'rgba(248,113,113,0.12)',
+    'Risk':         'rgba(251,146,60,0.12)',
+    'Advanced':     'rgba(167,139,250,0.15)',
 };
 const tagText = {
-    'Intro':       '#93bfff',
-    'Lesson Goals':'#c4b5fd',
-    'Fundamentals':'#6ee7b7',
-    'Impact':      '#fca5a5',
-    'Risk':        '#fdba74',
-    'Advanced':    '#c4b5fd',
+    'Intro':        '#93bfff',
+    'Lesson Goals': '#c4b5fd',
+    'Fundamentals': '#6ee7b7',
+    'Impact':       '#fca5a5',
+    'Risk':         '#fdba74',
+    'Advanced':     '#c4b5fd',
 };
 
 /* ─── Arrow icon ─────────────────────────────────────────────────── */
@@ -118,10 +77,73 @@ const ShieldIcon = () => (
     </svg>
 );
 
+/* ─── Card tag + number badge ─────────────────────────────────────── */
+const CardMeta = ({ post }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span className="blog-card-date">{post.date}</span>
+        <span style={{
+            fontSize: '0.68rem', fontWeight: 600,
+            padding: '2px 10px', borderRadius: 999,
+            background: tagColor[post.tag] || 'rgba(79,140,255,0.12)',
+            color: tagText[post.tag] || '#93bfff',
+        }}>{post.tag}</span>
+    </div>
+);
+
+/* ─── Clickable card → navigates to blog page ────────────────────── */
+const ClickableCard = ({ post }) => (
+    <Link
+        href={route(post.href)}
+        id={`post-${post.num}`}
+        className="blog-card"
+        style={{ textDecoration: 'none', display: 'block' }}
+    >
+        {/* thumbnail */}
+        <div className="blog-card-thumb">
+            <img src={encodeURI(`/${post.file}`)} alt={`${post.title} screenshot`} />
+            <div className="blog-card-thumb-overlay" />
+            <span className="blog-card-number">#{post.num}</span>
+        </div>
+        {/* body */}
+        <div className="blog-card-body">
+            <CardMeta post={post} />
+            <h4 className="blog-card-title">{post.title}</h4>
+            <p className="blog-card-desc">{post.description}</p>
+            <span className="blog-card-cta">
+                Read full blog <ArrowRight />
+            </span>
+        </div>
+    </Link>
+);
+
+/* ─── Static card → no click, dimmed CTA ────────────────────────── */
+const StaticCard = ({ post }) => (
+    <div
+        id={`post-${post.num}`}
+        className="blog-card"
+        style={{ cursor: 'default', opacity: 0.72 }}
+    >
+        {/* thumbnail */}
+        <div className="blog-card-thumb">
+            <img src={encodeURI(`/${post.file}`)} alt={`${post.title} screenshot`} />
+            <div className="blog-card-thumb-overlay" />
+            <span className="blog-card-number">#{post.num}</span>
+        </div>
+        {/* body */}
+        <div className="blog-card-body">
+            <CardMeta post={post} />
+            <h4 className="blog-card-title">{post.title}</h4>
+            <p className="blog-card-desc">{post.description}</p>
+            <span className="blog-card-cta" style={{ opacity: 0.4, pointerEvents: 'none' }}>
+                View screenshot <ArrowRight />
+            </span>
+        </div>
+    </div>
+);
+
 /* ═══════════════════════════════════════════════════════════════════
-   DASHBOARD COMPONENT
+   PANEL MODAL CONTENT
 ═══════════════════════════════════════════════════════════════════ */
-/* ─── Panel modal content ─────────────────────────────────────────── */
 const panelDetails = {
     auth: {
         label: 'Requirement 02',
@@ -169,10 +191,12 @@ const panelDetails = {
     },
 };
 
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD COMPONENT
+═══════════════════════════════════════════════════════════════════ */
 export default function Dashboard() {
-    const [activePost,  setActivePost]  = useState(null);
     const [activePanel, setActivePanel] = useState(null);
-    const [page, setPage]              = useState(1);
+    const [page, setPage]               = useState(1);
     const pageSize   = 4;
     const totalPages = Math.ceil(lessonPosts.length / pageSize);
     const pagePosts  = lessonPosts.slice((page - 1) * pageSize, page * pageSize);
@@ -180,7 +204,6 @@ export default function Dashboard() {
     const panelData = activePanel ? panelDetails[activePanel] : null;
 
     return (
-
         <AuthenticatedLayout
             header={
                 <div className="flex items-center gap-3">
@@ -219,45 +242,11 @@ export default function Dashboard() {
                     <p className="section-label">WebGoat Lesson Screenshots</p>
 
                     <div className="blog-grid">
-                        {pagePosts.map((post) => (
-                            <button
-                                key={post.file}
-                                type="button"
-                                id={`post-${post.num}`}
-                                onClick={() => setActivePost(post)}
-                                className="blog-card"
-                            >
-                                {/* thumbnail */}
-                                <div className="blog-card-thumb">
-                                    <img
-                                        src={encodeURI(`/${post.file}`)}
-                                        alt={`${post.title} screenshot`}
-                                    />
-                                    <div className="blog-card-thumb-overlay" />
-                                    <span className="blog-card-number">#{post.num}</span>
-                                </div>
-
-                                {/* body */}
-                                <div className="blog-card-body">
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <span className="blog-card-date">{post.date}</span>
-                                        <span style={{
-                                            fontSize: '0.68rem',
-                                            fontWeight: 600,
-                                            padding: '2px 10px',
-                                            borderRadius: 999,
-                                            background: tagColor[post.tag] || 'rgba(79,140,255,0.12)',
-                                            color: tagText[post.tag] || '#93bfff',
-                                        }}>{post.tag}</span>
-                                    </div>
-                                    <h4 className="blog-card-title">{post.title}</h4>
-                                    <p className="blog-card-desc">{post.description}</p>
-                                    <span className="blog-card-cta">
-                                        View screenshot <ArrowRight />
-                                    </span>
-                                </div>
-                            </button>
-                        ))}
+                        {pagePosts.map((post) =>
+                            post.clickable
+                                ? <ClickableCard key={post.file} post={post} />
+                                : <StaticCard    key={post.file} post={post} />
+                        )}
                     </div>
 
                     {/* Pagination */}
@@ -363,33 +352,6 @@ export default function Dashboard() {
 
                 </div>
             </div>
-
-            {/* ── SCREENSHOT MODAL ─────────────────────────────────── */}
-            <Modal show={Boolean(activePost)} onClose={() => setActivePost(null)} maxWidth="2xl">
-                {activePost && (
-                    <div className="blog-modal-inner" style={{ overflow: 'hidden' }}>
-                        <div className="blog-modal-header">
-                            <div>
-                                <p className="blog-modal-date">#{activePost.num} · {activePost.date}</p>
-                                <h2 className="blog-modal-title">{activePost.title}</h2>
-                            </div>
-                            <button
-                                type="button"
-                                className="blog-modal-close"
-                                onClick={() => setActivePost(null)}
-                            >
-                                Close ✕
-                            </button>
-                        </div>
-                        <p className="blog-modal-desc">{activePost.description}</p>
-                        <img
-                            src={encodeURI(`/${activePost.file}`)}
-                            alt={`${activePost.title} screenshot`}
-                            className="blog-modal-img"
-                        />
-                    </div>
-                )}
-            </Modal>
 
             {/* ── PANEL DETAIL MODAL ───────────────────────────────── */}
             <Modal show={Boolean(activePanel)} onClose={() => setActivePanel(null)} maxWidth="xl">
