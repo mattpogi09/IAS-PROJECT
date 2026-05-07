@@ -314,14 +314,7 @@ export default function Welcome({ auth }) {
                             Remember me
                         </label>
 
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginTop: '0.25rem' }}>
-                            <Link href={route('password.request')}
-                                style={{ fontSize: '0.82rem', color: 'rgba(148,163,200,0.65)', textDecoration: 'none' }}
-                                onMouseEnter={e => e.currentTarget.style.color='#93bfff'}
-                                onMouseLeave={e => e.currentTarget.style.color='rgba(148,163,200,0.65)'}
-                            >
-                                Forgot password?
-                            </Link>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '1rem', marginTop: '0.25rem' }}>
                             <button type="submit" disabled={loginForm.processing}
                                 style={{
                                     background: 'linear-gradient(135deg, #4f8cff, #7c3aed)',
